@@ -3,3 +3,5 @@
 *.edr 
 *.trr
 *.xtc
+\#*
+*.sif
