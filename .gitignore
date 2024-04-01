@@ -1,0 +1,5 @@
+*.log 
+*.gro
+*.edr 
+*.trr
+*.xtc

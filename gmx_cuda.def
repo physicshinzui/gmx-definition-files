@@ -1,0 +1,44 @@
+# Installation of GROMACS 2022.5
+
+BootStrap: docker 
+From: nvcr.io/nvidia/cuda:11.7.1-devel-ubuntu22.04
+#From: nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu20.04
+# ^ this does not work because of no sufficient CUDA tools, such as nvcc.
+
+%post
+    apt-get update
+    apt-get install -y sudo wget vim
+    echo y 79 | apt-get install cmake 
+    apt-get install -y gcc g++
+
+# install gromacs 
+%post
+    version=2022.5
+    cd /home
+    wget https://ftp.gromacs.org/gromacs/gromacs-${version}.tar.gz
+    tar zxvf gromacs-${version}.tar.gz
+    cd gromacs-${version}
+    mkdir build 
+    cd build
+    CUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
+    cmake -DCUDA_TOOLKIT_ROOT_DIR=${CUDA_TOOLKIT_ROOT_DIR}\
+          -DCUDA_NVCC_EXECUTABLE=${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc \
+          -DCUDA_INCLUDE_DIRS=${CUDA_TOOLKIT_ROOT_DIR}/include \
+          -DCUDA_CUDART_LIBRARY=${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so \
+          -DGMX_BUILD_OWN_FFTW=ON \
+          -DGMX_GPU=CUDA \
+          -DGMX_OPENMP=ON \
+          .. 
+    make -j 16 
+    make install 
+
+%environment
+    export PATH=/usr/local/gromacs/bin:$PATH
+    export LIBRARY_PATH=/usr/local/gromacs/lib:$LIBRARY_PATH 
+    export LD_LIBRARY_PATH=/usr/local/gromacs/lib:$LD_LIBRARY_PATH
+
+%runscript 
+    gmx --version
+
+%labels 
+    Maintainer: shinji iida
